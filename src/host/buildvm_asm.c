@@ -142,10 +142,14 @@ static void emit_asm_wordreloc(BuildCtx *ctx, uint8_t *p, int n,
   } else if ((ins >> 26) == 18) {
 #if LJ_ARCH_PPC64
     const char *suffix = strchr(sym, '@');
-    if (suffix && suffix[1] == 'h') {
-      fprintf(ctx->fp, "\taddis 11, 2, %s\n", sym);
+    if (suffix && strlen(suffix) == 7) {
+      fprintf(ctx->fp, "\tli 12, %s\n", sym);
+    } else if (suffix && suffix[1] == 'r') {
+      fprintf(ctx->fp, "\tsldi 12, 12, 32\n");
+    } else if (suffix && suffix[1] == 'h') {
+      fprintf(ctx->fp, "\toris 12, 12, %s\n", sym);
     } else if (suffix && suffix[1] == 'l') {
-      fprintf(ctx->fp, "\tld 12, %s\n", sym);
+      fprintf(ctx->fp, "\tori 12, 12,  %s\n", sym);
     } else
 #endif
     fprintf(ctx->fp, "\t%s " TOCPREFIX "%s\n", (ins & 1) ? "bl" : "b", sym);
@@ -247,6 +251,7 @@ void emit_asm(BuildCtx *ctx)
   fprintf(ctx->fp, "\t.file \"buildvm_%s.dasc\"\n", ctx->dasm_arch);
 #if LJ_ARCH_PPC64
   fprintf(ctx->fp, "\t.abiversion 2\n");
+  fprintf(ctx->fp, "\t.section\t\t\".toc\",\"aw\"\n");
 #endif
   fprintf(ctx->fp, "\t.text\n");
   emit_asm_align(ctx, 4);
