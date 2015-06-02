@@ -376,9 +376,6 @@
 #if !LJ_ARCH_PPC64 && LJ_ARCH_ENDIAN == LUAJIT_LE
 #error "No support for little-endian PPC32"
 #endif
-#if LJ_ARCH_PPC64
-#error "No support for PowerPC 64 bit mode (yet)"
-#endif
 #ifdef __NO_FPRS__
 #error "No support for PPC/e500 anymore (use LuaJIT 2.0)"
 #endif
