@@ -1573,7 +1573,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    li RD, (2+1)*8
   |   std TMP1, -16(BASE)		// Prepend false to results.
   |    la RA, -16(BASE)
-  |  stfd f0, 0(BASE)			// Copy error message.
+  |  stfd f0, -8(BASE)			// Copy error message.
   |  b <7
   |.else
   |  mr CARG1, L
