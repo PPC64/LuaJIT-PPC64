@@ -21,7 +21,7 @@
 |  bl extern target@h          //oris 12, 12, target@h
 |  bl extern target@l          //ori  12, 12, target@l
 |  mtctr r12
-|  bctrl;
+|  bctrl
 |//It is require to restore the TOC register after a function call
 |//once the linker will not imply a function from mtctr; bctrl; pair
 |//it is required to perform such step manually in this macro
@@ -169,8 +169,8 @@
 |  ld r0, SAVE_LR
 |  ld r12, SAVE_CR
 |  rest_ 14; rest_ 15; rest_ 16; rest_ 17; rest_ 18; rest_ 19
-|  mtlr r0;
-|  mtcrf 0xff, r12;
+|  mtlr r0
+|  mtcrf 0xff, r12
 |  rest_ 20; rest_ 21; rest_ 22; rest_ 23; rest_ 24; rest_ 25
 |  rest_ 26; rest_ 27; rest_ 28; rest_ 29; rest_ 30; rest_ 31
 |  addi sp, sp, CFRAME_SPACE
@@ -300,11 +300,11 @@
 |
 |// Macros to test operand types.
 |.macro get_oper_type, dst, reg
-|  sradi dst, reg, 47;
+|  sradi dst, reg, 47
 |.endmacro
 |
 |.macro set_oper_type, dst, reg
-|  sldi dst, reg, 47;
+|  sldi dst, reg, 47
 |.endmacro
 |
 |.macro set_bool, reg, type; li TMP4, type; rotldi reg, TMP4, 47; .endmacro
@@ -314,12 +314,8 @@
 |  add value, value, type
 |.endmacro
 |
-|.macro clear_field, reg;
+|.macro clear_field, reg
 |  clrldi reg, reg, 17
-|.endmacro
-|
-|.macro clear_field, dst, orig;
-|  clrldi dst, orig, 17
 |.endmacro
 |
 |// Numbers are 32-bit
@@ -336,17 +332,18 @@
 
 |.macro nop_arg, p; .endmacro
 |
-|.macro checknum_sig,         reg; li TMP4, LJ_TISNUM; checktp cr0, reg, getvalue,    cmpd,  TMP4; .endmacro
-|.macro checknum_sig,     cr, reg; li TMP4, LJ_TISNUM; checktp cr,  reg, getvalue,    cmpd,  TMP4; .endmacro
-|.macro checknum,             reg; li TMP4, LJ_TISNUM; checktp cr0, reg, getvalue,    cmpld, TMP4; .endmacro
-|.macro checknum,         cr, reg; li TMP4, LJ_TISNUM; checktp cr,  reg, getvalue,    cmpld, TMP4; .endmacro
-|.macro checkstr,             reg; li TMP4, LJ_TSTR  ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
-|.macro checktab,             reg; li TMP4, LJ_TTAB  ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
-|.macro checkfunc,            reg; li TMP4, LJ_TFUNC ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
+|.macro checknum_sig,         reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, getvalue,    cmpd,  TMP4; .endmacro
+|.macro checknum_sig,     cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, getvalue,    cmpd,  TMP4; .endmacro
+|.macro checknum,             reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, getvalue,    cmpld, TMP4; .endmacro
+|.macro checknum,         cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, getvalue,    cmpld, TMP4; .endmacro
+|.macro checkstr,             reg; li TMP4, LJ_TSTR   ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
+|.macro checktab,             reg; li TMP4, LJ_TTAB   ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
+|.macro checkfunc,            reg; li TMP4, LJ_TFUNC  ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
+|.macro checkthread,          reg; li TMP4, LJ_TTHREAD; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
 |
-|.macro checknil_noclear,     reg; li TMP4, LJ_TNIL  ; checktp cr0, reg, nop_arg,     cmpd,  TMP4; .endmacro
-|.macro checknum_noclear,     reg; li TMP4, LJ_TISNUM; checktp cr0, reg, nop_arg,     cmpld, TMP4; .endmacro
-|.macro checkfunc_noclear,    reg; li TMP4, LJ_TFUNC ; checktp cr0, reg, nop_arg,     cmpd,  TMP4; .endmacro
+|.macro checknil_noclear,     reg; li TMP4, LJ_TNIL   ; checktp cr0, reg, nop_arg,     cmpd,  TMP4; .endmacro
+|.macro checknum_noclear,     reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, nop_arg,     cmpld, TMP4; .endmacro
+|.macro checkfunc_noclear,    reg; li TMP4, LJ_TFUNC  ; checktp cr0, reg, nop_arg,     cmpd,  TMP4; .endmacro
 |
 |.macro branch_RD
 |  srdi TMP0, RD, 1
@@ -665,7 +662,7 @@ static void build_subroutines(BuildCtx *ctx)
   |->vm_call_dispatch:
   |  // TMP2 = old base, BASE = new base, RC = nargs*8, PC = caller PC
   |  ld LFUNC:RB, FRAME_FUNC(BASE)
-  |  checkfunc RB;
+  |  checkfunc RB
   |  bne ->vmeta_call
   |
   |->vm_call_dispatch_f:
@@ -1473,10 +1470,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.macro coroutine_resume_wrap, resume
   |.if resume
   |.ffunc_1 coroutine_resume
-  |  mr CARG3, CARG1
-  |   get_oper_type CARG3, CARG3
-  |  clear_field CARG1
-  |   cmpdi CARG3, LJ_TTHREAD; bne ->fff_fallback
+  |  checkthread CARG1; bne ->fff_fallback
   |.else
   |.ffunc coroutine_wrap_aux
   |  ld L:CARG1, CFUNC:RB->upvalue[0].gcr
@@ -2808,7 +2802,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
   case BC_LEN:
     |  // RA = dst*8, RD = src*8
     |  ldux CARG1, RD, BASE
-    |  mr TMP0, CARG1;
+    |  mr TMP0, CARG1
     |  checkstr CARG1; bne >2
     |  lwz CRET1, STR:CARG1->len
     |1:
@@ -2922,23 +2916,17 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     ||case 0:
     |   ldux CARG1, RB, BASE
     |   ldux CARG2, RC, KBASE
-    |   // ld CARG1, 8(RB)
     |   checknum cr0, CARG1
-    |   // ld CARG2, 8(RC)
     ||  break;
     ||case 1:
     |   ldux CARG1, RC, KBASE
     |   ldux CARG2, RB, BASE
-    |    //ld CARG2, 8(RB)
     |   checknum cr0, CARG1
-    |   // ld CARG1, 8(RC)
     ||  break;
     ||default:
     |   ldux CARG1, RB, BASE
     |   ldux CARG2, RC, BASE
-    |   // ld CARG1, 8(RB)
     |   checknum cr0, CARG1
-    |   // ld CARG2, 8(RC)
     ||  break;
     ||}
     |  checknum cr1, CARG2
@@ -2953,7 +2941,6 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  clear_field CARG1
     |  add CARG1, CARG1, TISNUM
     |  stdux CARG1, RA, BASE
-    |  //std CARG1, 8(RA)
     |2:
     |  ins_next2
     |4:  // Overflow.
@@ -3451,7 +3438,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   checknum_noclear CARG2
     |   bne  >5
     |  lwz TMP0, TAB:CARG1->asize
-    |  clear_field CARG2, CARG2
+    |  clear_field CARG2
     |   ld TMP1, TAB:CARG1->array
     |  cmpld TMP0, CARG2
     |   sldi TMP0, CARG2, 3
@@ -3553,7 +3540,6 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  li TMP0, LJ_TSTR
     |  set_oper_type TMP0, TMP0
     |  add TMP0, TMP0, STR:RC
-    |//   std STR:RC, 8(CARG3)
     |   mr CARG2, TAB:RB
     |  std TMP0, 0(CARG3)
     |  bl extern lj_tab_newkey		// (lua_State *L, GCtab *t, TValue *k)
@@ -4291,8 +4277,8 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ld TMP2, L->maxstack
     |   add TMP1, BASE, RC
     |  add RA, RA, RC
-    |   std LFUNC:RB, 0(TMP1)		// Store (untaged) copy of LFUNC. TODO: 0(TMP1) or 8(TMP1)?
-    |   addi TMP3, RC, 16+FRAME_VARG    //TODO: why?
+    |   std LFUNC:RB, 0(TMP1)		// Store (untagged) copy of LFUNC.
+    |   addi TMP3, RC, 16+FRAME_VARG
     |    ld KBASE, -4+PC2PROTO(k)(PC)
     |  cmpld RA, TMP2
     |   std TMP3, 8(TMP1)		// Store delta + FRAME_VARG.
@@ -4384,6 +4370,12 @@ static int build_backend(BuildCtx *ctx)
   return BC__MAX;
 }
 
+/*
+ * TODO: Below is the old PPC debug code that needs to be updated to 64b ABI:
+ *
+ * Power Architecture 64-Bit ELF V2 ABI Specification, version 1.0
+ * Source: http://openpowerfoundation.org/technical/technical-resources/technical-specifications/
+ */
 /* Emit pseudo frame-info for all assembler functions. */
 static void emit_asm_debug(BuildCtx *ctx)
 {
