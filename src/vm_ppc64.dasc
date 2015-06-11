@@ -318,10 +318,9 @@
 |  clrldi reg, reg, 17
 |.endmacro
 |
-|// Numbers are 32-bit
-|.macro getvalue, reg;
-|  sldi reg, reg, 32
-|  sradi reg, reg, 32
+|// clear bits 32-63 of 32-bit numbers and extend sign
+|.macro getvalue, reg
+|  srawi reg, reg, 0
 |.endmacro
 |
 |.macro checktp, cr, reg, clear, cmp_type, cmp_arg
@@ -1161,9 +1160,7 @@ static void build_subroutines(BuildCtx *ctx)
   |//-- Base library: checks -----------------------------------------------
   |
   |.ffunc_1 assert
-  |  li TMP1, 0x80
-  |  sldi TMP1, TMP1, 40
-  |  not TMP1, TMP1
+  |   set_bool TMP1, LJ_TFALSE
   |   la RA, -16(BASE)
   |  cmpld cr1, CARG1, TMP1
   |    ld PC, FRAME_PC(BASE)
