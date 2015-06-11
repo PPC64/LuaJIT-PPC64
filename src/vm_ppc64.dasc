@@ -420,11 +420,11 @@ static void build_subroutines(BuildCtx *ctx)
   |  // BASE = base, RA = resultptr, RD/MULTRES = (nresults+1)*8, PC = return
   |  // TMP0 = PC & FRAME_TYPE
   |  cmpdi TMP0, FRAME_C
+  |   li TMP4, FRAME_TYPEP
+  |   not TMP4, TMP4
   |    li_vmstate C
-  |  li TMP4, FRAME_TYPEP
-  |  not TMP4, TMP4
-  |  and TMP2, PC, TMP4
-  |  sub TMP2, BASE, TMP2		// TMP2 = previous base.
+  |   and TMP2, PC, TMP4
+  |   sub TMP2, BASE, TMP2		// TMP2 = previous base.
   |  bney ->vm_returnp
   |
   |  addic. TMP1, RD, -8
@@ -766,13 +766,13 @@ static void build_subroutines(BuildCtx *ctx)
   |  la CARG2, DISPATCH_GL(tmptv)(DISPATCH)
   |  li TMP0, LJ_TTAB
   |  set_oper_type TMP0, TMP0
-  |  add TAB:RB, TMP0, TAB:RB
-  |  std TAB:RB, 0(CARG2)
+  |  add TMP0, TMP0, TAB:RB
   |   la CARG3, DISPATCH_GL(tmptv2)(DISPATCH)
+  |  std TMP0, 0(CARG2)
   |   li TMP1, LJ_TSTR
   |   set_oper_type TMP1, TMP1
-  |   add TAB:RC, TMP1, TAB:RC
-  |   std STR:RC, 0(CARG3)
+  |   add TMP1, TMP1, TAB:RC
+  |   std TMP1, 0(CARG3)
   |  b >1
   |
   |->vmeta_tgetb:			// TMP0 = index
@@ -831,10 +831,10 @@ static void build_subroutines(BuildCtx *ctx)
   |  la CARG3, DISPATCH_GL(tmptv)(DISPATCH)
   |  li TMP0, LJ_TSTR
   |  set_oper_type TMP0, TMP0
-  |  add STR:RC, TMP0, STR:RC
   |   decode_RB8 RB, INS
-  |  std STR:RC, 0(CARG3)
+  |  add TMP0, TMP0, STR:RC
   |   add CARG2, BASE, RB
+  |  std TMP0, 0(CARG3)
   |  b >1
   |
   |->vmeta_tsets:
@@ -1201,7 +1201,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |.ffunc_1 getmetatable
   | get_oper_type CARG3, CARG1		// saving for :6
-  |  checktab CARG1; bne >6
+  | checktab CARG1; bne >6
   |1:  // Field metatable must be at same offset for GCtab and GCudata!
   |  ld TAB:RB, TAB:CARG1->metatable
   |2:
@@ -1214,7 +1214,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  ld TMP1, STR:RC->hash
   |   set_oper_type CARG1, CARG1
   |  ld NODE:TMP2, TAB:RB->node
-  |   add CARG1, CARG1, TAB:RB
+  |  add CARG1, CARG1, TAB:RB
   |  and TMP1, TMP1, TMP0		// idx = str->hash & tab->hmask
   |  sldi TMP0, TMP1, 5
   |  sldi TMP1, TMP1, 3
@@ -1251,7 +1251,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.ffunc_2 setmetatable
   |  // Fast path: no mt for table yet and not clearing the mt.
   |  mr TMP2, CARG1
-  |   checktab TMP2; bne ->fff_fallback
+  |  checktab TMP2; bne ->fff_fallback
   |  ld TAB:TMP1, TAB:TMP2->metatable
   |   checktab CARG2; bne ->fff_fallback
   |  cmpldi TAB:TMP1, 0
@@ -1289,7 +1289,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |.ffunc_1 tostring
   |  // Only handles the string or number case inline.
-  |   mr CARG3, CARG1			// save CARG1 type for checknum_sig and fff_restv
+  |  mr CARG3, CARG1			// save CARG1 type for checknum_sig and fff_restv
   |  checkstr CARG3
   |  // A __tostring method in the string base metatable is ignored.
   |  beq ->fff_restv			// String key?
@@ -1334,11 +1334,11 @@ static void build_subroutines(BuildCtx *ctx)
   |  std CARG3, -16(BASE)
   |  beq ->fff_res1			// End of traversal: return nil.
   |  ld CARG1, 8(BASE)			// Copy key and value to results.
-  |  ld CARG2, 16(BASE)
   |   la RA, -16(BASE)
+  |  ld CARG2, 16(BASE)
   |  std CARG1, 0(RA)
-  |  std CARG2, 8(RA)
   |   li RD, (2+1)*8
+  |  std CARG2, 8(RA)
   |  b ->fff_res
   |
   |.ffunc_1 pairs
@@ -1436,15 +1436,15 @@ static void build_subroutines(BuildCtx *ctx)
   |  rlwinm TMP3, TMP3, 32-HOOK_ACTIVE_SHIFT, 31, 31
   |   subi NARGS8:RC, NARGS8:RC, 8
   |  addi PC, TMP3, 16+FRAME_PCALL
-  |  cmpdi NARGS8:RC, 0
+  |   cmpdi NARGS8:RC, 0
   |  beq ->vm_call_dispatch
   |1:
-  |  add TMP1, BASE, NARGS8:RC
+  |   add TMP1, BASE, NARGS8:RC
   |2:
-  |  ld TMP0, -16(TMP1)
-  |  stdu TMP0, -8(TMP1)
-  |  cmpld TMP1, BASE
-  |  bne <2
+  |   ld TMP0, -16(TMP1)
+  |   stdu TMP0, -8(TMP1)
+  |   cmpld TMP1, BASE
+  |   bne <2
   |  b ->vm_call_dispatch
   |
   |.ffunc xpcall
@@ -1479,19 +1479,18 @@ static void build_subroutines(BuildCtx *ctx)
   |  lbz TMP0, L:CARG1->status
   |   ld TMP1, L:CARG1->cframe
   |     la TMP3, L:CARG1->base
+  |     ld TMP2, 0(TMP3)
   |     ld CARG2, 8(TMP3)
   |  cmpldi cr0, TMP0, LUA_YIELD
-  |    ld TMP2, L:CARG1->base
   |     add TMP3, CARG2, TMP0
   |   cmpldi cr1, TMP1, 0
   |     cmpd cr7, TMP3, TMP2
   |   ld TMP0, L:CARG1->maxstack
   |     beq cr7, ->fff_fallback
-  |    cmpld cr7, CARG2, TMP2
+  |     cmpld cr7, CARG2, TMP2
   |   ld PC, FRAME_PC(BASE)
-  |     std BASE, L->base
   |  bge cr0, >9
-  |  addi CARG2, CARG2, 8
+  |   addi CARG2, CARG2, 8
   |9:
   |  crorc 4*cr6+lt, 4*cr0+gt, 4*cr1+eq		// st>LUA_YIELD || cframe!=0
   |   add TMP2, CARG2, NARGS8:RC
@@ -1948,8 +1947,8 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |.macro .ffunc_bit_op, name, ins
   |  .ffunc_bit name
-  |  mr TMP0, CARG1
-  |  rldicl TMP0, TMP0, 0, 32
+  |   mr TMP0, CARG1
+  |   rldicl TMP0, TMP0, 0, 32
   |  addi TMP1, BASE, 8
   |  add TMP2, BASE, NARGS8:RC
   |1:
@@ -2187,8 +2186,8 @@ static void build_subroutines(BuildCtx *ctx)
   |  sub NARGS8:RC, TMP0, BASE
   |  add RA, BASE, RA
   |  ld LFUNC:RB, FRAME_FUNC(BASE)
-  |  lwz INS, -4(PC)
   |  clear_field RB
+  |  lwz INS, -4(PC)
   |  mtctr CRET1
   |  bctr
   |
@@ -2505,8 +2504,8 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  li TMP3, LJ_TISNUM
     |  cmpld cr0, TMP0, TMP3
     |    ld TMP2, -4(PC)
-    |   get_oper_type TMP1, CARG3
-    |   cmpld cr1, TMP1, TMP3
+    |  get_oper_type TMP1, CARG3
+    |  cmpld cr1, TMP1, TMP3
     |    decode_RD4 TMP2, TMP2
     |  cror 4*cr7+gt, 4*cr0+gt, 4*cr1+gt
     |    addis TMP2, TMP2, -(BCBIAS_J*4 >> 16)
@@ -2699,8 +2698,8 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ldx TMP0, BASE, RD
     |   lwz INS, 0(PC)
     |   addi PC, PC, 4
-    |  get_oper_type TMP0, TMP0
     if (op == BC_IST || op == BC_ISF) {
+      |  get_oper_type TMP0, TMP0
       |  subfic TMP0, TMP0, LJ_TTRUE
       |   decode_RD4 TMP2, INS
       |  subfe TMP1, TMP1, TMP1
@@ -3161,9 +3160,9 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  lbz TMP3, UPVAL:RB->marked
     |   ld CARG2, UPVAL:RB->v
     |  andix. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
+    |   lbz TMP3, STR:TMP1->marked
+    |   lbz TMP2, UPVAL:RB->closed
     |   li TMP0, LJ_TSTR
-    |    lbz TMP3, STR:TMP1->marked
-    |    lbz TMP2, UPVAL:RB->closed
     |   set_oper_type TMP0, TMP0
     |   add TMP0, TMP0, STR:TMP1
     |   std TMP0, 0(CARG2)
@@ -3740,16 +3739,15 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
   case BC_ITERC:
     |  // RA = base*8, (RB = (nresults+1)*8, RC = (nargs+1)*8 ((2+1)*8))
     |  mr TMP2, BASE
-    |  add RA, BASE, RA
-    |  ld LFUNC:RB, -24(RA)
-    |   ld CARG1, -16(RA)
-    |   ld CARG2, -8(RA)
-    |  std LFUNC:RB, 0(RA)		// Copy callable.
+    |  add BASE, BASE, RA
+    |  ld LFUNC:RB, -24(BASE)
+    |   ld CARG1, -16(BASE)
+    |   ld CARG2, -8(BASE)
+    |  std LFUNC:RB, 0(BASE)		// Copy callable.
     |  checkfunc LFUNC:RB
-    |    std CARG1, 16(RA)		// Copy control var.
     |     li NARGS8:RC, 16		// Iterators get 2 arguments.
-    |    std CARG2, 24(RA)		// Copy state.
-    |  la BASE, 16(RA)
+    |    std CARG2, 24(BASE)		// Copy state.
+    |    stdu CARG1, 16(BASE)		// Copy control var.
     |  bne ->vmeta_call
     |  ins_call
     break;
@@ -4051,7 +4049,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   checknum cr0, CARG1
     if (vk) {
       |   ld CARG3, FORL_STEP*8(RA)
-      |    checknum CARG3
+      |   checknum CARG3
       |  bne >9
       |  // Need to check overflow for (a<<32) + (b<<32).
       |  rldicr TMP0, CARG1, 32, 31
