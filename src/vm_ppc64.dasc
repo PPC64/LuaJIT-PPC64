@@ -1270,7 +1270,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  bl extern lj_tab_get  // (lua_State *L, GCtab *t, cTValue *key)
   |  // Returns cTValue *.
   |  lfd FARG1, 0(CRET1)
-  |  ld CARG1, 1(CRET1)
+  |  ld CARG1, 0(CRET1)
   |  b ->fff_restv
   |
   |//-- Base library: conversions ------------------------------------------
