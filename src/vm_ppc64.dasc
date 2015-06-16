@@ -29,15 +29,7 @@
 |  addil  r2, r2,  extern .TOC.-lj_..target_name@l
 |.endmacro
 |
-|.macro andix., y, a, i
-|  andi. y, a, i
-|.endmacro
-|
-|.macro clrso, reg
-|  mcrxr cr0
-|.endmacro
-|
-|.macro checkov, reg, noov
+|.macro checkov, noov
 |  mcrxr cr0
 |  bley noov
 |.endmacro
@@ -392,7 +384,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_returnp:
   |  // See vm_return. Also: TMP2 = previous base.
-  |  andix. TMP0, PC, FRAME_P
+  |  andi. TMP0, PC, FRAME_P
   |   set_bool TMP1, LJ_TTRUE
   |  beq ->cont_dispatch
   |
@@ -404,7 +396,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_returnc:
   |  addi RD, RD, 8			// RD = (nresults+1)*8.
-  |   andix. TMP0, PC, FRAME_TYPE
+  |   andi. TMP0, PC, FRAME_TYPE
   |  cmpdi cr1, RD, 0
   |  li CRET1, LUA_YIELD
   |  beq cr1, ->vm_unwind_c_eh
@@ -601,7 +593,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    li_vmstate INTERP
   |     li ZERO, 0
   |    st_vmstate
-  |  andix. TMP0, PC, FRAME_TYPE
+  |  andi. TMP0, PC, FRAME_TYPE
   |   mr MULTRES, RD
   |     lfs TONUM, TMPD
   |     li TISNIL, LJ_TNIL
@@ -1250,7 +1242,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  cmpldi TAB:TMP1, 0
   |   lbz TMP3, TAB:TMP2->marked
   |  bne ->fff_fallback
-  |   andix. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
+  |   andi. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
   |    std TAB:CARG2, TAB:TMP2->metatable
   |   beq ->fff_restv
   |  barrierback TAB:TMP2, TMP3, TMP0
@@ -1543,7 +1535,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    addi TMP1, TMP1, 8
   |  bne <5
   |6:
-  |  andix. TMP0, PC, FRAME_TYPE
+  |  andi. TMP0, PC, FRAME_TYPE
   |.if resume
   |  set_bool TMP1, LJ_TTRUE
   |   la RA, -8(BASE)
@@ -1561,7 +1553,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |8:  // Coroutine returned with error (at co->top-1).
   |.if resume
-  |  andix. TMP0, PC, FRAME_TYPE
+  |  andi. TMP0, PC, FRAME_TYPE
   |  la TMP3, -8(TMP3)
   |   set_bool TMP1, LJ_TFALSE
   |  lfd f0, 0(TMP3)
@@ -1592,7 +1584,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  ld TMP0, L->cframe
   |   add TMP1, BASE, NARGS8:RC
   |   std BASE, L->base
-  |  andix. TMP0, TMP0, CFRAME_RESUME
+  |  andi. TMP0, TMP0, CFRAME_RESUME
   |   std TMP1, L->top
   |    li CRET1, LUA_YIELD
   |  beq ->fff_fallback
@@ -1638,7 +1630,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  li RD, (1+1)*8
   |->fff_res:
   |  // RA = results, RD = (nresults+1)*8, PC = return.
-  |  andix. TMP0, PC, FRAME_TYPE
+  |  andi. TMP0, PC, FRAME_TYPE
   |   mr MULTRES, RD
   |  subi RA, BASE, 16
   |  bney ->vm_return
@@ -2061,7 +2053,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |// Reconstruct previous base for vmeta_call during tailcall.
   |->vm_call_tail:
-  |  andix. TMP0, PC, FRAME_TYPE
+  |  andi. TMP0, PC, FRAME_TYPE
   |   rlwinm TMP1, PC, 0, 0, 28
   |  bne >3
   |  lwz INS, -4(PC)
@@ -2104,7 +2096,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_rethook:			// Dispatch target for return hooks.
   |  lbz TMP3, DISPATCH_GL(hookmask)(DISPATCH)
-  |  andix. TMP0, TMP3, HOOK_ACTIVE	// Hook already active?
+  |  andi. TMP0, TMP3, HOOK_ACTIVE	// Hook already active?
   |  beq >1
   |5:  // Re-dispatch to static ins.
   |  addi TMP1, TMP1, GG_DISP2STATIC	// Assumes decode_OP8 TMP1, INS.
@@ -2115,7 +2107,7 @@ static void build_subroutines(BuildCtx *ctx)
   |->vm_inshook:			// Dispatch target for instr/line hooks.
   |  lbz TMP3, DISPATCH_GL(hookmask)(DISPATCH)
   |  ld TMP2, DISPATCH_GL(hookcount)(DISPATCH)
-  |  andix. TMP0, TMP3, HOOK_ACTIVE	// Hook already active?
+  |  andi. TMP0, TMP3, HOOK_ACTIVE	// Hook already active?
   |   rlwinm TMP0, TMP3, 31-LUA_HOOKLINE, 31, 0
   |  bne <5
   |
@@ -2237,7 +2229,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  cmpdi CARG2, 0
   |   li CARG1, 0
   |  beqlr
-  |  clrso TMP0			// Clear SO for -2147483648 % -1 and return 0.
+  |  mcrxr cr0			// Clear SO for -2147483648 % -1 and return 0.
   |  blr
   |
   |//-----------------------------------------------------------------------
@@ -2552,7 +2544,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP2, 0
     |  beq <1				// No metatable?
     |  lbz TMP2, TAB:TMP2->nomm
-    |  andix. TMP2, TMP2, 1<<MM_eq
+    |  andi. TMP2, TMP2, 1<<MM_eq
     |  bne <1				// Or 'no __eq' flag set?
     |  mr PC, SAVE0			// Restore old PC.
     |  b ->vmeta_equal			// Handle __eq metamethod.
@@ -2817,7 +2809,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
 #if LJ_52
     |9:
     |  lbz TMP0, TAB:TMP2->nomm
-    |  andix. TMP0, TMP0, 1<<MM_len
+    |  andi. TMP0, TMP0, 1<<MM_len
     |  bne <3				// 'no __len' flag set: done.
     |  b ->vmeta_len
 #endif
@@ -2936,7 +2928,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |2:
     |  ins_next2
     |4:  // Overflow.
-    |  checkov TMP0, <1			// Ignore unrelated overflow.
+    |  checkov <1			// Ignore unrelated overflow.
     |  ins_arithfallback b
     |5:  // FP variant.
     ||if (vk == 1) {
@@ -3118,7 +3110,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ldx UPVAL:RB, LFUNC:RB, RA
     |  lbz TMP3, UPVAL:RB->marked
     |   ld CARG2, UPVAL:RB->v
-    |  andix. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
+    |  andi. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
     |    lbz TMP0, UPVAL:RB->closed
     |   ld TMP2, 0(RD)
     |   stfd f0, 0(CARG2)
@@ -3135,7 +3127,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  bge <1				// tvisgcv(v)
     |  clear_field GCOBJ:TMP1
     |  lbz TMP3, GCOBJ:TMP1->gch.marked
-    |  andix. TMP3, TMP3, LJ_GC_WHITES	// iswhite(v)
+    |  andi. TMP3, TMP3, LJ_GC_WHITES	// iswhite(v)
     |   la CARG1, GG_DISP2G(DISPATCH)
     |  // Crossed a write barrier. Move the barrier forward.
     |  beq <1
@@ -3152,7 +3144,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ldx UPVAL:RB, LFUNC:RB, RA
     |  lbz TMP3, UPVAL:RB->marked
     |   ld CARG2, UPVAL:RB->v
-    |  andix. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
+    |  andi. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
     |   lbz TMP3, STR:TMP1->marked
     |   lbz TMP2, UPVAL:RB->closed
     |   li TMP0, LJ_TSTR
@@ -3164,7 +3156,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next
     |
     |2:  // Check if string is white and ensure upvalue is closed.
-    |  andix. TMP3, TMP3, LJ_GC_WHITES	// iswhite(str)
+    |  andi. TMP3, TMP3, LJ_GC_WHITES	// iswhite(str)
     |   cmpldi cr1, TMP2, 0
     |  cror 4*cr0+eq, 4*cr0+eq, 4*cr1+eq
     |   la CARG1, GG_DISP2G(DISPATCH)
@@ -3322,7 +3314,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP2, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP0, TAB:TMP2->nomm
-    |  andix. TMP0, TMP0, 1<<MM_index
+    |  andi. TMP0, TMP0, 1<<MM_index
     |  bne <1				// 'no __index' flag set: done.
     |  b ->vmeta_tgetv
     |
@@ -3373,7 +3365,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP2, 0
     |  beq <3				// No metatable: done.
     |  lbz TMP0, TAB:TMP2->nomm
-    |  andix. TMP0, TMP0, 1<<MM_index
+    |  andi. TMP0, TMP0, 1<<MM_index
     |  bne <3				// 'no __index' flag set: done.
     |  b ->vmeta_tgets
     break;
@@ -3399,7 +3391,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP2, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP2, TAB:TMP2->nomm
-    |  andix. TMP2, TMP2, 1<<MM_index
+    |  andi. TMP2, TMP2, 1<<MM_index
     |  bne <1				// 'no __index' flag set: done.
     |  b ->vmeta_tgetb			// Caveat: preserve TMP0!
     break;
@@ -3440,7 +3432,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    lfdx f14, BASE, RA
     |   checknil_noclear TMP2; beq >3
     |1:
-    |  andix. TMP2, TMP3, LJ_GC_BLACK	// isblack(table)
+    |  andi. TMP2, TMP3, LJ_GC_BLACK	// isblack(table)
     |    stfdx f14, TMP1, TMP0
     |  bne >7
     |2:
@@ -3451,7 +3443,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP2, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP2, TAB:TMP2->nomm
-    |  andix. TMP2, TMP2, 1<<MM_newindex
+    |  andi. TMP2, TMP2, 1<<MM_newindex
     |  bne <1				// 'no __newindex' flag set: done.
     |  b ->vmeta_tsetv
     |
@@ -3496,7 +3488,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   cmpd CARG1, STR:RC; bne >5
     |    checknil_noclear CARG2; beq >4		// Key found, but nil value?
     |2:
-    |  andix. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
+    |  andi. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
     |    stfd f14, NODE:TMP2->val
     |  bne >7
     |3:
@@ -3507,7 +3499,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP1, 0
     |  beq <2				// No metatable: done.
     |  lbz TMP0, TAB:TMP1->nomm
-    |  andix. TMP0, TMP0, 1<<MM_newindex
+    |  andi. TMP0, TMP0, 1<<MM_newindex
     |  bne <2				// 'no __newindex' flag set: done.
     |  b ->vmeta_tsets
     |
@@ -3526,7 +3518,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   std BASE, L->base
     |  beq >6				// No metatable: continue.
     |  lbz TMP0, TAB:TMP1->nomm
-    |  andix. TMP0, TMP0, 1<<MM_newindex
+    |  andi. TMP0, TMP0, 1<<MM_newindex
     |  beq ->vmeta_tsets		// 'no __newindex' flag NOT set: check.
     |6:
     |  li TMP0, LJ_TSTR
@@ -3559,7 +3551,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ldx TMP1, TMP2, RC
     |  checknil_noclear TMP1; beq >5
     |1:
-    |  andix. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
+    |  andi. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
     |   stfdx f14, TMP2, RC
     |  bne >7
     |2:
@@ -3570,7 +3562,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  cmpldi TAB:TMP1, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP1, TAB:TMP1->nomm
-    |  andix. TMP1, TMP1, 1<<MM_newindex
+    |  andi. TMP1, TMP1, 1<<MM_newindex
     |  bne <1				// 'no __newindex' flag set: done.
     |  b ->vmeta_tsetb			// Caveat: preserve TMP0!
     |
@@ -3589,7 +3581,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ld CARG3, 0(RC)
     |  clear_field CARG3
     |   ld TMP1, TAB:CARG2->array
-    |  andix. TMP2, TMP3, LJ_GC_BLACK	// isblack(table)
+    |  andi. TMP2, TMP3, LJ_GC_BLACK	// isblack(table)
     |  bne >7
     |2:
     |  cmpld TMP0, CARG3
@@ -3627,7 +3619,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   ld TMP0, TAB:CARG2->array
     |  bgt >5
     |   add TMP1, TMP1, TMP0
-    |    andix. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
+    |    andi. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
     |3:  // Copy result slots to table.
     |   lfd f0, 0(RA)
     |  addi RA, RA, 8
@@ -3687,7 +3679,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   addi RA, RA, 16
     |  bne ->vmeta_callt
     |->BC_CALLT_Z:
-    |  andix. TMP0, TMP1, FRAME_TYPE	// Caveat: preserve cr0 until the crand.
+    |  andi. TMP0, TMP1, FRAME_TYPE	// Caveat: preserve cr0 until the crand.
     |   lbz TMP3, LFUNC:RB->ffid
     |    xori TMP2, TMP1, FRAME_VARG
     |    cmpldi cr1, NARGS8:RC, 0
@@ -3721,11 +3713,11 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  b <4
     |
     |7:  // Tailcall from a vararg function.
-    |  andix. TMP0, TMP2, FRAME_TYPEP
+    |  andi. TMP0, TMP2, FRAME_TYPEP
     |  bne <1				// Vararg frame below?
     |  sub BASE, BASE, TMP2		// Relocate BASE down.
     |  ld TMP1, FRAME_PC(BASE)
-    |  andix. TMP0, TMP1, FRAME_TYPE
+    |  andi. TMP0, TMP1, FRAME_TYPE
     |  b <1
     break;
 
@@ -3931,7 +3923,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   add RA, BASE, RA
     |    mr MULTRES, RD
     |1:
-    |  andix. TMP0, PC, FRAME_TYPE
+    |  andi. TMP0, PC, FRAME_TYPE
     |   xori TMP1, PC, FRAME_VARG
     |  bne ->BC_RETV_Z
     |
@@ -3975,7 +3967,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  b <5
     |
     |->BC_RETV_Z:  // Non-standard return case.
-    |  andix. TMP2, TMP1, FRAME_TYPEP
+    |  andi. TMP2, TMP1, FRAME_TYPEP
     |  bne ->vm_return
     |  // Return from vararg function: relocate BASE down.
     |  sub BASE, BASE, TMP1
@@ -3988,7 +3980,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ld PC, FRAME_PC(BASE)
     |   add RA, BASE, RA
     |    mr MULTRES, RD
-    |  andix. TMP0, PC, FRAME_TYPE
+    |  andi. TMP0, PC, FRAME_TYPE
     |   xori TMP1, PC, FRAME_VARG
     |  bney ->BC_RETV_Z
     |
@@ -4097,7 +4089,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  b <1
     if (vk) {
       |6:  // Potential overflow.
-      |  checkov TMP0, <4		// Ignore unrelated overflow.
+      |  checkov <4		// Ignore unrelated overflow.
       |  b <2
     }
     if (vk) {
