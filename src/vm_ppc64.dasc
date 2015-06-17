@@ -15,11 +15,7 @@
 |
 |// Convenience macros for TOC handling.
 |.macro blex, target
-|  // The target@highest is not loaded as no memory address is higher than 2^48
-|  bl extern target@higher     //li   12, target@higher
-|  bl extern target@r          //sldi 12, 12, 32
-|  bl extern target@h          //oris 12, 12, target@h
-|  bl extern target@l          //ori  12, 12, target@l
+|  bl extern target@got        //ld 12, target@got(2)
 |  mtctr r12
 |  bctrl
 |//It is require to restore the TOC register after a function call
