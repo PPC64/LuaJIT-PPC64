@@ -307,7 +307,7 @@
 |.endmacro
 |
 |// clear bits 32-63 of 32-bit numbers and extend sign
-|.macro getvalue, reg
+|.macro get_value, reg
 |  srawi reg, reg, 0
 |.endmacro
 |
@@ -316,13 +316,13 @@
 |  cmp_type cr, TMP5, cmp_arg
 |  clear reg
 |.endmacro
-
+|
 |.macro nop_arg, p; .endmacro
 |
-|.macro checknum_sig,         reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, getvalue,    cmpd,  TMP4; .endmacro
-|.macro checknum_sig,     cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, getvalue,    cmpd,  TMP4; .endmacro
-|.macro checknum,             reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, getvalue,    cmpld, TMP4; .endmacro
-|.macro checknum,         cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, getvalue,    cmpld, TMP4; .endmacro
+|.macro checknum_sig,         reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, get_value,   cmpd,  TMP4; .endmacro
+|.macro checknum_sig,     cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, get_value,   cmpd,  TMP4; .endmacro
+|.macro checknum,             reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, get_value,   cmpld, TMP4; .endmacro
+|.macro checknum,         cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, get_value,   cmpld, TMP4; .endmacro
 |.macro checkstr,             reg; li TMP4, LJ_TSTR   ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
 |.macro checktab,             reg; li TMP4, LJ_TTAB   ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
 |.macro checkfunc,            reg; li TMP4, LJ_TFUNC  ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
@@ -1597,12 +1597,12 @@ static void build_subroutines(BuildCtx *ctx)
   |.ffunc_1 math_abs
   |  checknum_noclear CARG1
   |  bne >2
-  |  getvalue CARG1
+  |  get_value CARG1
   |  sradi TMP1, CARG1, 31
   |  xor TMP2, TMP1, CARG1
   |  lus TMP0, 0x8000
   |  sub CARG1, TMP2, TMP1
-  |  getvalue CARG1
+  |  get_value CARG1
   |  cmpld CARG1, TMP0
   |  beq >1
   |->fff_resi:
@@ -2583,7 +2583,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   get_oper_type TMP0, CARG2
     |  ldux CARG3, RD, KBASE
     |   li TMP4, LJ_TISNUM
-    |  getvalue CARG2
+    |  get_value CARG2
     |   cmpld cr0, TMP0, TMP4
     |    ld TMP2, -4(PC)
     |  checknum cr1, CARG3
