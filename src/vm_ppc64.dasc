@@ -2689,7 +2689,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
       }
       |  add PC, PC, TMP2
     } else {
-      |  li TMP1, LJ_TFALSE
+      |  set_bool TMP1, LJ_TFALSE
       |   lfdx f0, BASE, RD
       |  cmpld TMP0, TMP1		// compare directly due to get_oper_type
       if (op == BC_ISTC) {
