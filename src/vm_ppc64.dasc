@@ -319,18 +319,51 @@
 |
 |.macro nop_arg, p; .endmacro
 |
-|.macro checknum_sig,         reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, get_value,   cmpd,  TMP4; .endmacro
-|.macro checknum_sig,     cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, get_value,   cmpd,  TMP4; .endmacro
-|.macro checknum,             reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, get_value,   cmpld, TMP4; .endmacro
-|.macro checknum,         cr, reg; li TMP4, LJ_TISNUM ; checktp cr,  reg, get_value,   cmpld, TMP4; .endmacro
-|.macro checkstr,             reg; li TMP4, LJ_TSTR   ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
-|.macro checktab,             reg; li TMP4, LJ_TTAB   ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
-|.macro checkfunc,            reg; li TMP4, LJ_TFUNC  ; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
-|.macro checkthread,          reg; li TMP4, LJ_TTHREAD; checktp cr0, reg, clear_field, cmpd,  TMP4; .endmacro
+|.macro checknum_sig, reg
+|  li TMP4, LJ_TISNUM
+|  checktp cr0, reg, get_value, cmpd, TMP4
+|.endmacro
+|.macro checknum_sig, cr, reg
+|  li TMP4, LJ_TISNUM
+|  checktp cr, reg, get_value, cmpd, TMP4
+|.endmacro
+|.macro checknum, reg
+|  li TMP4, LJ_TISNUM
+|  checktp cr0, reg, get_value, cmpld, TMP4
+|.endmacro
+|.macro checknum, cr, reg
+|  li TMP4, LJ_TISNUM
+|  checktp cr, reg, get_value, cmpld, TMP4
+|.endmacro
+|.macro checkstr, reg
+|  li TMP4, LJ_TSTR
+|  checktp cr0, reg, clear_field, cmpd, TMP4
+|.endmacro
+|.macro checktab, reg
+|  li TMP4, LJ_TTAB
+|  checktp cr0, reg, clear_field, cmpd, TMP4
+|.endmacro
+|.macro checkfunc, reg
+|  li TMP4, LJ_TFUNC
+|  checktp cr0, reg, clear_field, cmpd, TMP4
+|.endmacro
+|.macro checkthread, reg
+|  li TMP4, LJ_TTHREAD
+|  checktp cr0, reg, clear_field, cmpd, TMP4
+|.endmacro
 |
-|.macro checknil_noclear,     reg; li TMP4, LJ_TNIL   ; checktp cr0, reg, nop_arg,     cmpd,  TMP4; .endmacro
-|.macro checknum_noclear,     reg; li TMP4, LJ_TISNUM ; checktp cr0, reg, nop_arg,     cmpld, TMP4; .endmacro
-|.macro checkfunc_noclear,    reg; li TMP4, LJ_TFUNC  ; checktp cr0, reg, nop_arg,     cmpd,  TMP4; .endmacro
+|.macro checknil_noclear, reg
+|  li TMP4, LJ_TNIL
+|  checktp cr0, reg, nop_arg, cmpd, TMP4
+|.endmacro
+|.macro checknum_noclear, reg
+|  li TMP4, LJ_TISNUM
+|  checktp cr0, reg, nop_arg, cmpld, TMP4
+|.endmacro
+|.macro checkfunc_noclear, reg
+|  li TMP4, LJ_TFUNC
+|  checktp cr0, reg, nop_arg, cmpd, TMP4
+|.endmacro
 |
 |.macro branch_RD
 |  srdi TMP0, RD, 1
@@ -1274,7 +1307,8 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |.ffunc_1 tostring
   |  // Only handles the string or number case inline.
-  |  mr CARG3, CARG1			// save CARG1 type for checknum_sig and fff_restv
+  |  // save CARG1 type for checknum_sig and fff_restv
+  |  mr CARG3, CARG1
   |  checkstr CARG3
   |  // A __tostring method in the string base metatable is ignored.
   |  beq ->fff_restv			// String key?
@@ -1439,7 +1473,8 @@ static void build_subroutines(BuildCtx *ctx)
   |  blt ->fff_fallback
   |  lbz TMP1, DISPATCH_GL(hookmask)(DISPATCH)
   |   mr TMP2, BASE
-  |  checkfunc_noclear CARG2; bne ->fff_fallback  // Traceback must be a function.
+  |  // Traceback must be a function.
+  |  checkfunc_noclear CARG2; bne ->fff_fallback
   |   la BASE, 24(BASE)
   |  // Remember active hook before pcall.
   |  rlwinm TMP1, TMP1, 32-HOOK_ACTIVE_SHIFT, 31, 31
@@ -4161,7 +4196,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
   case BC_IITERL:
     |  // RA = base*8, RD = target
     |  ldux TMP1, RA, BASE
-    |  checknil_noclear TMP1; beq >1		// Stop if iterator returned nil.
+    |  checknil_noclear TMP1; beq >1	// Stop if iterator returned nil.
     if (op == BC_JITERL) {
       |   std TMP1, -8(RA)
       |  b =>BC_JLOOP
