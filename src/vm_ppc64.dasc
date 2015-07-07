@@ -360,6 +360,10 @@
 |  li TMP4, LJ_TISNUM
 |  checktp cr0, reg, nop_arg, cmpld, TMP4
 |.endmacro
+|.macro checknum_noclear, cr, reg
+|  li TMP4, LJ_TISNUM
+|  checktp cr, reg, nop_arg, cmpld, TMP4
+|.endmacro
 |.macro checkfunc_noclear, reg
 |  li TMP4, LJ_TFUNC
 |  checktp cr0, reg, nop_arg, cmpd, TMP4
@@ -3322,10 +3326,11 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ldux CARG1, RB, BASE
     |  ldux CARG2, RC, BASE
     |  checktab CARG1
-    |   checknum cr1, CARG2
+    |   checknum_noclear cr1, CARG2
     |  bne ->vmeta_tgetv
     |  lwz TMP0, TAB:CARG1->asize
     |   bne cr1, >5
+    |   get_value CARG2			// Number is cleared through get_value
     |   ld TMP1, TAB:CARG1->array
     |  cmpld TMP0, CARG2
     |   sldi TMP2, CARG2, 3
@@ -3349,8 +3354,8 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |
     |5:
     |  checkstr CARG2; bne ->vmeta_tgetv
-    |  mr RC, CARG2
-    |  clear_field RC
+    |  mr RC, CARG2			// BC_TGETS_Z needs plain RB and RC
+    |  mr RB, CARG1			// pointers without its type
     |  b ->BC_TGETS_Z			// String key?
     break;
   case BC_TGETS:
