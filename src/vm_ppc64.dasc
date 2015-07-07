@@ -2141,7 +2141,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_inshook:			// Dispatch target for instr/line hooks.
   |  lbz TMP3, DISPATCH_GL(hookmask)(DISPATCH)
-  |  ld TMP2, DISPATCH_GL(hookcount)(DISPATCH)
+  |  lwz TMP2, DISPATCH_GL(hookcount)(DISPATCH)
   |  andi. TMP0, TMP3, HOOK_ACTIVE	// Hook already active?
   |   rlwinm TMP0, TMP3, 31-LUA_HOOKLINE, 31, 0
   |  bne <5
@@ -2149,7 +2149,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   cmpdi cr1, TMP0, 0
   |  addic. TMP2, TMP2, -1
   |   beq cr1, <5
-  |  std TMP2, DISPATCH_GL(hookcount)(DISPATCH)
+  |  stw TMP2, DISPATCH_GL(hookcount)(DISPATCH)
   |  beq >1
   |   bge cr1, <5
   |1:
