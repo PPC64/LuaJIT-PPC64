@@ -15,7 +15,7 @@
 |
 |// Convenience macros for TOC handling.
 |.macro blex, target
-|  bl extern target@got        //ld 12, target@got(2)
+|  bl extern target@got		// ld 12, target@got(2)
 |  mtctr r12
 |  bctrl
 |//It is require to restore the TOC register after a function call
@@ -91,44 +91,44 @@
 |// Stack layout while in interpreter. Must match with lj_frame.h.
 |
 |.define SAVE_LR,	416(sp)
-|.define CFRAME_SPACE,	400	   // Delta for sp.
-|// Back chain for sp:	400(sp)    <-- sp entering interpreter
-|.define SAVE_FPR_,	256        // .. 256+18*8: 64 bit FPR saves.
-|.define SAVE_GPR_,	112        // .. 112+18*8: 64 bit GPR saves.
-|//			92(sp)     // \ 32 bit C frame info.
-|.define SAVE_ERRF,	88(sp)     // |
-|.define SAVE_NRES,	80(sp)     // |
-|.define SAVE_L,	72(sp)     //  > Parameter save area.
-|.define SAVE_PC,	64(sp)     // |
-|.define SAVE_MULTRES,	56(sp)     // |
-|.define SAVE_CFRAME,	48(sp)     // / 64 bit C frame chain.
+|.define CFRAME_SPACE,	400	// Delta for sp.
+|// Back chain for sp:	400(sp)	<-- sp entering interpreter
+|.define SAVE_FPR_,	256	// .. 256+18*8: 64 bit FPR saves.
+|.define SAVE_GPR_,	112	// .. 112+18*8: 64 bit GPR saves.
+|//			92(sp)	// \ 32 bit C frame info.
+|.define SAVE_ERRF,	88(sp)	// |
+|.define SAVE_NRES,	80(sp)	// |
+|.define SAVE_L,	72(sp)	//  > Parameter save area.
+|.define SAVE_PC,	64(sp)	// |
+|.define SAVE_MULTRES,	56(sp)	// |
+|.define SAVE_CFRAME,	48(sp)	// / 64 bit C frame chain.
 |
 |.if LJ_ARCH_ENDIAN == LUAJIT_LE
-|.define TMPD_HI,	44(sp)     // \ Link editor temp (ABI mandated).
-|.define TMPD_LO,	40(sp)     // /
-|.define TONUM_HI,	36(sp)     // \ Compiler temp (ABI mandated).
-|.define TONUM_LO,	32(sp)     // /
+|.define TMPD_HI,	44(sp)	// \ Link editor temp (ABI mandated).
+|.define TMPD_LO,	40(sp)	// /
+|.define TONUM_HI,	36(sp)	// \ Compiler temp (ABI mandated).
+|.define TONUM_LO,	32(sp)	// /
 |.else  // big endian
-|.define TMPD_LO,	44(sp)     // \ Link editor temp (ABI mandated).
-|.define TMPD_HI,	40(sp)     // /
-|.define TONUM_LO,	36(sp)     // \ Compiler temp (ABI mandated).
-|.define TONUM_HI,	32(sp)     // /
+|.define TMPD_LO,	44(sp)	// \ Link editor temp (ABI mandated).
+|.define TMPD_HI,	40(sp)	// /
+|.define TONUM_LO,	36(sp)	// \ Compiler temp (ABI mandated).
+|.define TONUM_HI,	32(sp)	// /
 |.endif
-|//			32(sp)     // Callee parameter save area (ABI mandated).
-|.define SAVE_TOC,	24(sp)     // TOC save area.
+|//			32(sp)	// Callee parameter save area (ABI mandated).
+|.define SAVE_TOC,	24(sp)	// TOC save area.
 |// Next frame lr:	16(sp)
-|.define SAVE_CR,	8(sp)      // 64 bit CR save.
-|// Back chain for sp:	0(sp)	   <-- sp while in interpreter
+|.define SAVE_CR,	8(sp)	// 64 bit CR save.
+|// Back chain for sp:	0(sp) 	<-- sp while in interpreter
 |
 |
 |.if LJ_ARCH_ENDIAN == LUAJIT_LE
-|.define TMPD_BLO,	40(sp)     // LSB
-|.define TMPD,		TMPD_LO    // base address of TMPD doubleword
-|.define TONUM_D,	TONUM_LO   // base address of TONUM doubleword
+|.define TMPD_BLO,	40(sp)	// LSB
+|.define TMPD,		TMPD_LO	// base address of TMPD doubleword
+|.define TONUM_D,	TONUM_LO// base address of TONUM doubleword
 |.else  // big endian
-|.define TMPD_BLO,	47(sp)     // LSB
-|.define TMPD,		TMPD_HI    // base address of TMPD doubleword
-|.define TONUM_D,	TONUM_HI   // base address of TONUM doubleword
+|.define TMPD_BLO,	47(sp)	// LSB
+|.define TMPD,		TMPD_HI	// base address of TMPD doubleword
+|.define TONUM_D,	TONUM_HI// base address of TONUM doubleword
 |.endif
 |
 |.macro save_, reg
@@ -397,7 +397,7 @@
 |.macro barrierback, tab, mark, tmp
 |  ld tmp, DISPATCH_GL(gc.grayagain)(DISPATCH)
 |  // Assumes LJ_GC_BLACK is 0x04.
-|   rlwinm mark, mark, 0, 30, 28		// black2gray(tab)
+|   rlwinm mark, mark, 0, 30, 28	// black2gray(tab)
 |  std tab, DISPATCH_GL(gc.grayagain)(DISPATCH)
 |   stb mark, tab->marked
 |  std tmp, tab->gclist
@@ -725,7 +725,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->cont_dispatch:
   |  // BASE = meta base, RA = resultptr, RD = (nresults+1)*8
-  |  ld TMP0, -32(BASE)		// Continuation.
+  |  ld TMP0, -32(BASE)			// Continuation.
   |  clear_field TMP0
   |   mr RB, BASE
   |   mr BASE, TMP2			// Restore caller BASE.
@@ -2590,7 +2590,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |.if FFI
     |  cmpdi TMP0, LJ_TCDATA
     |.endif
-    |   ldx STR:TMP1, KBASE, RD	// KBASE-8-str_const*8
+    |   ldx STR:TMP1, KBASE, RD		// KBASE-8-str_const*8
     |  subfic TMP0, TMP0, LJ_TSTR
     |.if FFI
     |  beq ->vmeta_equal_cd
@@ -2793,7 +2793,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  beq >4
     |1:
     |  ins_next1
-    |  rldicl TMP0, TMP1, 0, 32        // clear the high order 32 bits
+    |  rldicl TMP0, TMP1, 0, 32		// clear the high order 32 bits
     |  add TMP0, TMP0, TISNUM
     |  stdx TMP0, RA, BASE
     |3:
@@ -3274,12 +3274,12 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
       |  rlwinm CARG3, RD, 18, 27, 31
       |  cmpdi CARG2, 0x7ff; beq >3
       |2:
-      |  bl extern lj_tab_new  // (lua_State *L, int32_t asize, uint32_t hbits)
+      |  bl extern lj_tab_new	// (lua_State *L, int32_t asize, uint32_t hbits)
       |  // Returns Table *.
     } else {
       |  subfic TMP1, RD, -8
       |  ldx CARG2, KBASE, TMP1		// KBASE-8-tab_const*8
-      |  bl extern lj_tab_dup  // (lua_State *L, Table *kt)
+      |  bl extern lj_tab_dup	// (lua_State *L, Table *kt)
       |  // Returns Table *.
     }
     |  ld BASE, L->base
@@ -3295,7 +3295,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     }
     |5:
     |  mr SAVE0, RD
-    |  bl extern lj_gc_step_fixtop  // (lua_State *L)
+    |  bl extern lj_gc_step_fixtop	// (lua_State *L)
     |  mr RD, SAVE0
     |  mr CARG1, L
     |  b <1
@@ -3309,7 +3309,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  clear_field LFUNC:TMP2
     |  ld TAB:RB, LFUNC:TMP2->env
     |   subfic TMP1, RD, -8
-    |   ldx STR:RC, KBASE, TMP1	// KBASE-8-str_const*8
+    |   ldx STR:RC, KBASE, TMP1		// KBASE-8-str_const*8
     if (op == BC_GGET) {
       |  b ->BC_TGETS_Z
     } else {
@@ -3360,7 +3360,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    clear_field TAB:RB
     |   subfic TMP1, RC, -8
     |  checktab CARG1
-    |   ldx STR:RC, KBASE, TMP1	// KBASE-8-str_const*8
+    |   ldx STR:RC, KBASE, TMP1		// KBASE-8-str_const*8
     |  bne ->vmeta_tgets1
     |->BC_TGETS_Z:
     |  // TAB:RB = GCtab *, STR:RC = GCstr *, RA = dst*8
@@ -3494,7 +3494,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    clear_field TAB:RB
     |   subfic TMP1, RC, -8
     |  checktab CARG1
-    |   ldx STR:RC, KBASE, TMP1	// KBASE-8-str_const*8
+    |   ldx STR:RC, KBASE, TMP1		// KBASE-8-str_const*8
     |  bne ->vmeta_tsets1
     |->BC_TSETS_Z:
     |  // TAB:RB = GCtab *, STR:RC = GCstr *, RA = src*8
@@ -3515,7 +3515,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |     ld NODE:TMP1, NODE:TMP2->next
     |  checkstr CARG1; bne >5
     |   cmpd CARG1, STR:RC; bne >5
-    |    checknil_noclear CARG2; beq >4		// Key found, but nil value?
+    |    checknil_noclear CARG2; beq >4	// Key found, but nil value?
     |2:
     |  andi. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
     |    stfd f14, NODE:TMP2->val
@@ -4118,7 +4118,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  b <1
     if (vk) {
       |6:  // Potential overflow.
-      |  checkov <4		// Ignore unrelated overflow.
+      |  checkov <4			// Ignore unrelated overflow.
       |  b <2
     }
     if (vk) {
