@@ -3140,10 +3140,11 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   ld CARG2, UPVAL:RB->v
     |  andi. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
     |    lbz TMP0, UPVAL:RB->closed
-    |   ld TMP2, 0(RD)
+    |   ld TMP1, 0(RD)
+    |   get_oper_type TMP2, TMP1
+    |   clear_field TMP1
     |   stfd f0, 0(CARG2)
     |    cmpldi cr1, TMP0, 0
-    |   ld TMP1, 8(RD)
     |  cror 4*cr0+eq, 4*cr0+eq, 4*cr1+eq
     |   subi TMP2, TMP2, (LJ_TNUMX+1)
     |  bne >2				// Upvalue is closed and black?
