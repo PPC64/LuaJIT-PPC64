@@ -3131,7 +3131,6 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    lbz TMP0, UPVAL:RB->closed
     |   ld TMP1, 0(RD)
     |   get_oper_type TMP2, TMP1
-    |   clear_field TMP1
     |   stfd f0, 0(CARG2)
     |    cmpldi cr1, TMP0, 0
     |  cror 4*cr0+eq, 4*cr0+eq, 4*cr1+eq
