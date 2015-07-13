@@ -2938,7 +2938,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |1:
     |  ins_next1
     |  li TISNUM, LJ_TISNUM
-    |  sldi TISNUM, TISNUM, 47
+    |  set_oper_type TISNUM, TISNUM
     |  clear_field CARG1
     |  add CARG1, CARG1, TISNUM
     |  stdux CARG1, RA, BASE
@@ -3200,7 +3200,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ld LFUNC:RB, FRAME_FUNC(BASE)
     |    srdi TMP0, RD, 3
     |   addi RA, RA, offsetof(GCfuncL, uvptr)
-    |    sldi TMP0, TMP0, 47
+    |    set_oper_type TMP0, TMP0
     |  clear_field RB
     |    not TMP0, TMP0
     |  ldx UPVAL:RB, LFUNC:RB, RA
