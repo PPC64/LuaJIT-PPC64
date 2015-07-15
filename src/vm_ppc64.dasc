@@ -102,34 +102,19 @@
 |.define SAVE_PC,	64(sp)	// |
 |.define SAVE_MULTRES,	56(sp)	// |
 |.define SAVE_CFRAME,	48(sp)	// / 64 bit C frame chain.
-|
-|.if LJ_ARCH_ENDIAN == LUAJIT_LE
 |.define TMPD_HI,	44(sp)	// \ Link editor temp (ABI mandated).
 |.define TMPD_LO,	40(sp)	// /
 |.define TONUM_HI,	36(sp)	// \ Compiler temp (ABI mandated).
 |.define TONUM_LO,	32(sp)	// /
-|.else  // big endian
-|.define TMPD_LO,	44(sp)	// \ Link editor temp (ABI mandated).
-|.define TMPD_HI,	40(sp)	// /
-|.define TONUM_LO,	36(sp)	// \ Compiler temp (ABI mandated).
-|.define TONUM_HI,	32(sp)	// /
-|.endif
 |//			32(sp)	// Callee parameter save area (ABI mandated).
 |.define SAVE_TOC,	24(sp)	// TOC save area.
 |// Next frame lr:	16(sp)
 |.define SAVE_CR,	8(sp)	// 64 bit CR save.
 |// Back chain for sp:	0(sp) 	<-- sp while in interpreter
 |
-|
-|.if LJ_ARCH_ENDIAN == LUAJIT_LE
 |.define TMPD_BLO,	40(sp)	// LSB
 |.define TMPD,		TMPD_LO	// base address of TMPD doubleword
 |.define TONUM_D,	TONUM_LO// base address of TONUM doubleword
-|.else  // big endian
-|.define TMPD_BLO,	47(sp)	// LSB
-|.define TMPD,		TMPD_HI	// base address of TMPD doubleword
-|.define TONUM_D,	TONUM_HI// base address of TONUM doubleword
-|.endif
 |
 |.macro save_, reg
 |  std r..reg, SAVE_GPR_+(reg-14)*8(sp)
